@@ -45,6 +45,7 @@ class App(object):
     def __init__(self):
         self.name = 'App'
         self.model_path = './model/'
+        self.graph_fp = './model/resnet101.pb'
         self.session = None
         self.loader = None
         self.ckpt = None
@@ -71,6 +72,16 @@ class App(object):
         saver.restore(sess, ckpt_path)
         print("Restored model parameters from {}".format(ckpt_path))
 
+    def _load_graph(self):
+        self.graph = tf.Graph()
+        with self.graph.as_default():
+            od_graph_def = tf.GraphDef()
+            with tf.gfile.GFile(self.graph_fp, 'rb') as fid:
+                serialized_graph = fid.read()
+                od_graph_def.ParseFromString(serialized_graph)
+                tf.import_graph_def(od_graph_def, name='')
+        tf.get_default_graph().finalize()
+
     def run(self):
         self._tf_init()
 
@@ -81,6 +92,7 @@ class App(object):
                 img_resized, img_feed = self._pre_process(frame)
                 restore_var = tf.global_variables()
                 raw_output = self.net.layers['fc_out']
+                print('raw_output: ', raw_output)
                 raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
                 raw_output_up = tf.argmax(raw_output_up, dimension=3)
                 pred = tf.expand_dims(raw_output_up, dim=3)
