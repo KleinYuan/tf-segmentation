@@ -47,10 +47,14 @@ python server.py
 
 # API
 
+```
 URL: http://127.0.0.1:5000/segmentation
+
 HEADERS: {'Content-Type': application/json}
+
 BODY: {url: ''}
 
+```
 
 # Future Work
 
