@@ -37,7 +37,6 @@ class App(object):
         color_table = mat['colors']
         shape = color_table.shape
         color_list = [tuple(color_table[i]) for i in range(shape[0])]
-
         return color_list
 
     def decode_labels(self, mask, num_images=1, num_classes=150):
@@ -125,6 +124,10 @@ class App(object):
         print('Prediction Done !')
         return msk
 
+    def tf_release(self):
+        self.session.close()
+        del self.session
+
     # Debugging
     def run_with_frozen_pb(self):
         self._load_graph()
@@ -138,44 +141,61 @@ class App(object):
                 cv2.imshow('mask', msk[0])
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.tf_release()
                 break
 
         self.cap.release()
         cv2.destroyAllWindows()
+        self.tf_release()
 
-    def run(self):
+    def _process(self, img):
+        img_resized, img_feed = self._pre_process(img)
+        raw_output = self.net.layers['fc_out']
+        raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
+        raw_output_up = tf.argmax(raw_output_up, dimension=3)
+        pred = tf.expand_dims(raw_output_up, dim=3)
+        self.in_progress = True
+        start_time = time.time()
+        _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
+        elapsed_time = time.time() - start_time
+        print("FPS: ", 1 / elapsed_time)
+        self.in_progress = False
+        msk = self.decode_labels(_ops, num_classes=NUM_CLASSES)
+        over_layed = cv2.addWeighted(img_resized, 0.5, msk[0], 0.3, 0)
+        return over_layed
+
+    def start_live_run(self):
         self._tf_init()
         self.cap = cv2.VideoCapture(0)
         while True:
             ret, frame = self.cap.read()
             if ret and (not self.in_progress):
-                img_resized, img_feed = self._pre_process(frame)
-
-                raw_output = self.net.layers['fc_out']
-                raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
-                raw_output_up = tf.argmax(raw_output_up, dimension=3)
-                pred = tf.expand_dims(raw_output_up, dim=3)
-
-                self.in_progress = True
-                start_time = time.time()
-                _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
-                elapsed_time = time.time() - start_time
-                print("FPS: ", 1/elapsed_time)
-                self.in_progress = False
-                msk = self.decode_labels(_ops, num_classes=NUM_CLASSES)
-                over_layed = cv2.addWeighted(img_resized, 0.5, msk[0], 0.3, 0)
+                over_layed = self._process(frame)
                 cv2.imshow('over_layed', over_layed)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.tf_release()
                 break
 
         self.cap.release()
         cv2.destroyAllWindows()
+        self.tf_release()
+
+    def demo_one_img(self, img_fp):
+        self._tf_init()
+        img = cv2.imread(img_fp)
+        over_layed = self._process(img)
+        cv2.imshow('over_layed', over_layed)
+        cv2.waitKey(0)
+        self.cap.release()
+        cv2.destroyAllWindows()
+        self.tf_release()
+
 
 
 def main():
     app = App()
-    app.run()
+    app.start_live_run()
 
 
 if __name__ == '__main__':
