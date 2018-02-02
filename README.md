@@ -39,16 +39,16 @@ Paper: [Chen, Liang-Chieh, et al. "Deeplab: Semantic image segmentation with dee
 1. `model.py/network.py` are borrowed from [DrSleep's implementation](https://github.com/DrSleep/tensorflow-deeplab-resnet). The layout does not seem ideal to me and I may re-implement them later on, but for now, I will just stick with it.
 2. Pre-trained weight can be referred from [Indoor-segmentation](https://github.com/hellochick/Indoor-segmentation)
 
-# Run as Restful API
+# Docker
 
 ```
-python server.py
+make build run
 ```
 
 # API
 
 ```
-URL: http://127.0.0.1:5000/segmentation
+URL: http://0.0.0.0:8080/segmentation
 
 HEADERS: {'Content-Type': application/json}
 

@@ -23,7 +23,8 @@ class WebServer(Resource):
         # You may wanna play some magic here.
         return jsonify(str(prediction))
 
+
 api.add_resource(WebServer, '/segmentation')
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(host='0.0.0.0', debug=False, port=80)
