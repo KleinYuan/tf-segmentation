@@ -160,7 +160,8 @@ class App(object):
                 _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
                 self.in_progress = False
                 msk = self.decode_labels(_ops, num_classes=NUM_CLASSES)
-                cv2.imshow('mask', msk[0])
+                over_layed = cv2.addWeighted(img_resized, 0.5, msk[0], 0.3, 0)
+                cv2.imshow('over_layed', over_layed)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
