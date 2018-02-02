@@ -1,11 +1,11 @@
 from __future__ import print_function
 
+import time
 import scipy.io as sio
-from PIL import Image
 import cv2
 import tensorflow as tf
 import numpy as np
-
+from PIL import Image
 from model import DeepLabResNetModel
 
 IMG_MEAN = np.array((104.00698793, 116.66876762, 122.67891434), dtype=np.float32)
@@ -157,7 +157,10 @@ class App(object):
                 pred = tf.expand_dims(raw_output_up, dim=3)
 
                 self.in_progress = True
+                start_time = time.time()
                 _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
+                elapsed_time = time.time() - start_time
+                print("FPS: ", 1/elapsed_time)
                 self.in_progress = False
                 msk = self.decode_labels(_ops, num_classes=NUM_CLASSES)
                 over_layed = cv2.addWeighted(img_resized, 0.5, msk[0], 0.3, 0)
