@@ -1,18 +1,15 @@
 from __future__ import print_function
-
-import time
-import scipy.io as sio
-import cv2
-import tensorflow as tf
-import numpy as np
 from PIL import Image
 from model import DeepLabResNetModel
+import time
+import cv2
+import numpy as np
+import scipy.io as sio
+import tensorflow as tf
 
 IMG_MEAN = np.array((104.00698793, 116.66876762, 122.67891434), dtype=np.float32)
-
 NUM_CLASSES = 27
 COLOR_MAT_FP = 'color150.mat'
-
 
 
 class App(object):
@@ -148,7 +145,7 @@ class App(object):
         cv2.destroyAllWindows()
         self.tf_release()
 
-    def _process(self, img):
+    def process(self, img):
         img_resized, img_feed = self._pre_process(img)
         raw_output = self.net.layers['fc_out']
         raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
@@ -170,7 +167,7 @@ class App(object):
         while True:
             ret, frame = self.cap.read()
             if ret and (not self.in_progress):
-                over_layed = self._process(frame)
+                over_layed = self.process(frame)
                 cv2.imshow('over_layed', over_layed)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -184,14 +181,22 @@ class App(object):
     def demo_one_img(self, img_fp):
         self._tf_init()
         img = cv2.imread(img_fp)
-        over_layed = self._process(img)
+        over_layed = self.process(img)
         cv2.imshow('over_layed', over_layed)
         cv2.waitKey(0)
         self.cap.release()
         cv2.destroyAllWindows()
         self.tf_release()
 
+    def get_result(self):
+        return self.prediction
 
+'''
+API:
+1. Initial an instance of app first : app = App()
+2. Feed img in np.array/opencv format: app.process(img=img)
+3. Get prediction: app.get_result()
+'''
 
 def main():
     app = App()
