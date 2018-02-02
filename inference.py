@@ -12,7 +12,7 @@ NUM_CLASSES = 27
 COLOR_MAT_FP = 'color150.mat'
 
 
-class App(object):
+class SegApp(object):
     def __init__(self):
         self.name = 'App'
         self.model_path = './model/'
@@ -146,6 +146,7 @@ class App(object):
         self.tf_release()
 
     def process(self, img):
+        print('tf graph', tf.Graph)
         img_resized, img_feed = self._pre_process(img)
         raw_output = self.net.layers['fc_out']
         raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
@@ -154,6 +155,7 @@ class App(object):
         self.in_progress = True
         start_time = time.time()
         _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
+        self.prediction = _ops
         elapsed_time = time.time() - start_time
         print("FPS: ", 1 / elapsed_time)
         self.in_progress = False
@@ -188,20 +190,24 @@ class App(object):
         cv2.destroyAllWindows()
         self.tf_release()
 
+    def spin(self):
+        self._tf_init()
+
     def get_result(self):
         return self.prediction
 
 '''
 API:
 1. Initial an instance of app first : app = App()
-2. Feed img in np.array/opencv format: app.process(img=img)
-3. Get prediction: app.get_result()
+2. Spin service: app.spin()
+3. Feed img in np.array/opencv format: app.process(img=img)
+4. Get prediction: app.get_result()
 '''
 
-def main():
-    app = App()
-    app.start_live_run()
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     app = SegApp()
+#     app.start_live_run()
+#
+#
+# if __name__ == '__main__':
+#     main()
