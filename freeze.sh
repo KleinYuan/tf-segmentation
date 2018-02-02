@@ -1,0 +1,1 @@
+python ./tools/graph_freezer.py  --model_folder=./model   --net_name=resnet101

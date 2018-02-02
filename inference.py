@@ -40,7 +40,6 @@ def decode_labels(mask, num_images=1, num_classes=150):
     return outputs
 
 
-
 class App(object):
     def __init__(self):
         self.name = 'App'
@@ -52,6 +51,7 @@ class App(object):
         self.net = None
         self.img_tf = None
         self.cap = None
+        self.prediction = None
         self.in_progress = False
         self.img_shape = 300
         self.input_feed_shape = (1, self.img_shape, self.img_shape, 3)
@@ -63,9 +63,11 @@ class App(object):
         self.config.gpu_options.allow_growth = True
 
     def _pre_process(self, frame):
+        print('Pre-processing image ...')
         img_resized = cv2.resize(frame.copy(), (self.img_shape, self.img_shape))
         img_feed = np.array(img_resized, dtype=float)
         img_feed = np.expand_dims(img_feed, axis=0)
+        print('Pre-processed image!')
         return img_resized, img_feed
 
     def _load_trained_model(self, saver, sess, ckpt_path):
@@ -73,6 +75,7 @@ class App(object):
         print("Restored model parameters from {}".format(ckpt_path))
 
     def _load_graph(self):
+        print('Loading graph from %s ...' % self.graph_fp)
         self.graph = tf.Graph()
         with self.graph.as_default():
             od_graph_def = tf.GraphDef()
@@ -81,40 +84,48 @@ class App(object):
                 od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(od_graph_def, name='')
         tf.get_default_graph().finalize()
+        print('Loaded graph from %s !' % self.graph_fp)
+
+    def _init_predictor(self):
+        print('Initializing predictor ...')
+        tf_config = tf.ConfigProto()
+        tf_config.gpu_options.allow_growth = True
+        with self.graph.as_default():
+            self.session = tf.Session(config=tf_config, graph=self.graph)
+            init = tf.global_variables_initializer()
+            self.session.run(init)
+            self.input_data_tensor = self.graph.get_tensor_by_name('Placeholder:0')
+            self.output_tensor = self.graph.get_tensor_by_name('fc_out/Conv2D:0')
+        print('Initialized predictor!')
+
+    def predict(self, img):
+        print('Predicting ...')
+        self.in_progress = True
+        with self.graph.as_default():
+
+            img_resized, img_feed = self._pre_process(img)
+            raw_output_up = tf.image.resize_bilinear(self.output_tensor, tf.shape(img_resized)[0:2, ])
+            raw_output_up = tf.argmax(raw_output_up, dimension=3)
+            pred_ops = tf.expand_dims(raw_output_up, dim=3)
+
+            prediction = self.session.run([pred_ops], feed_dict={self.input_data_tensor: img_feed})
+            print('Prediction Done!')
+
+            self.prediction = prediction[0]
+            msk = decode_labels(self.prediction, num_classes=NUM_CLASSES)
+        self.in_progress = False
+        print('Prediction Done !')
+        return msk
 
     def run(self):
-        self._tf_init()
+        self._load_graph()
+        self._init_predictor()
 
         self.cap = cv2.VideoCapture(0)
         while True:
             ret, frame = self.cap.read()
             if ret and (not self.in_progress):
-                img_resized, img_feed = self._pre_process(frame)
-                restore_var = tf.global_variables()
-                raw_output = self.net.layers['fc_out']
-                print('raw_output: ', raw_output)
-                raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
-                raw_output_up = tf.argmax(raw_output_up, dimension=3)
-                pred = tf.expand_dims(raw_output_up, dim=3)
-
-                if not self.session:
-                    self.session = tf.Session(config=self.config)
-                    init = tf.global_variables_initializer()
-                    self.session.run(init)
-
-                # Load pre-trained model
-                if self.ckpt is None:
-                    self.ckpt = tf.train.get_checkpoint_state(self.model_path)
-                    if self.ckpt and self.ckpt.model_checkpoint_path and (self.loader is None):
-                        self.loader = tf.train.Saver(var_list=restore_var)
-                        self._load_trained_model(self.loader, self.session, self.ckpt.model_checkpoint_path)
-                    else:
-                        print('No checkpoint file found. or loaded!')
-
-                self.in_progress = True
-                _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
-                self.in_progress = False
-                msk = decode_labels(_ops, num_classes=NUM_CLASSES)
+                msk = self.predict(frame)
                 cv2.imshow('mask', msk[0])
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -122,6 +133,50 @@ class App(object):
 
         self.cap.release()
         cv2.destroyAllWindows()
+
+    # def run_from_model(self):
+    #     self._tf_init()
+    #
+    #     self.cap = cv2.VideoCapture(0)
+    #     while True:
+    #         ret, frame = self.cap.read()
+    #         if ret and (not self.in_progress):
+    #             img_resized, img_feed = self._pre_process(frame)
+    #             restore_var = tf.global_variables()
+    #             raw_output = self.net.layers['fc_out']
+    #             print('raw_output: ', raw_output)
+    #             raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
+    #             raw_output_up = tf.argmax(raw_output_up, dimension=3)
+    #             pred = tf.expand_dims(raw_output_up, dim=3)
+    #
+    #
+    #             if not self.session:
+    #                 self.session = tf.Session(config=self.config)
+    #                 init = tf.global_variables_initializer()
+    #                 self.session.run(init)
+    #
+    #             # Load pre-trained model
+    #             if self.ckpt is None:
+    #                 self.ckpt = tf.train.get_checkpoint_state(self.model_path)
+    #                 if self.ckpt and self.ckpt.model_checkpoint_path and (self.loader is None):
+    #                     self.loader = tf.train.Saver(var_list=restore_var)
+    #                     self._load_trained_model(self.loader, self.session, self.ckpt.model_checkpoint_path)
+    #                 else:
+    #                     print('No checkpoint file found. or loaded!')
+    #
+    #             self.in_progress = True
+    #             print('self.img_tf: ', self.img_tf)
+    #             print('pred: ', pred)
+    #             _ops = self.session.run(pred, feed_dict={self.img_tf: img_feed})
+    #             self.in_progress = False
+    #             msk = decode_labels(_ops, num_classes=NUM_CLASSES)
+    #             cv2.imshow('mask', msk[0])
+    #
+    #         if cv2.waitKey(1) & 0xFF == ord('q'):
+    #             break
+    #
+    #     self.cap.release()
+    #     cv2.destroyAllWindows()
 
 
 def main():

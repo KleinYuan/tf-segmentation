@@ -12,6 +12,13 @@ Real time segmentation inference production ready code based on DeepLab.
 
 * No GPU required
 
+# Freeze Model
+
+```
+# Navigate to tf-segmentation
+bash freeze.sh
+```
+
 # Run Demo
 
 ```
