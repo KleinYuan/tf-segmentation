@@ -22,12 +22,21 @@ bash freeze.sh
 # Run Demo
 
 1. Download pre-trained model first (e.g: [Indoor-segmentation](https://github.com/hellochick/Indoor-segmentation))
+
+```
+1 (wall)      <- 9(window), 15(door), 33(fence), 43(pillar), 44(sign board), 145(bullertin board)
+4 (floor)     <- 7(road), 14(ground, 30(field), 53(path), 55(runway)
+5 (tree)      <- 18(plant)
+8 (furniture) <- 8(bed), 11(cabinet), 14(sofa), 16(table), 19(curtain), 20(chair), 25(shelf), 34(desk) 
+7 (stairs)    <- 54(stairs)
+26(others)    <- class number larger than 26
+```
+
 2. Put model.* files under `/model` folder
 3. run below:
 
 ```
-# Uncomment last blocks of codes
-python inference.py
+python demo.py
 ```
 
 # References

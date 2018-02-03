@@ -146,7 +146,6 @@ class SegApp(object):
         self.tf_release()
 
     def process(self, img):
-        print('tf graph', tf.Graph)
         img_resized, img_feed = self._pre_process(img)
         raw_output = self.net.layers['fc_out']
         raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
@@ -203,11 +202,3 @@ API:
 3. Feed img in np.array/opencv format: app.process(img=img)
 4. Get prediction: app.get_result()
 '''
-
-# def main():
-#     app = SegApp()
-#     app.start_live_run()
-#
-#
-# if __name__ == '__main__':
-#     main()
