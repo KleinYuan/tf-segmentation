@@ -3,10 +3,10 @@
 # The batch normalisation layer is provided by
 # the slim library (https://github.com/tensorflow/tensorflow/tree/master/tensorflow/contrib/slim).
 
-from network import Network
+from network import DeepLabNetwork, PSPNetwork
 import tensorflow as tf
 
-class DeepLabResNetModel(Network):
+class DeepLabResNetModel(DeepLabNetwork):
     def setup(self, is_training, num_classes):
         '''Network definition.
 
@@ -434,7 +434,7 @@ class DeepLabResNetModel(Network):
              .batch_normalization(is_training=is_training, activation_fn=None, name='fc_oooo_bn')
              .conv(1, 1, num_classes, 1, 1, biased=False, relu=False, name='fc_out'))
 
-class PSPNet101(Network):
+class PSPNet101(PSPNetwork):
     def setup(self, is_training, num_classes):
         '''Network definition.
         Args:
@@ -902,8 +902,7 @@ class PSPNet101(Network):
              .batch_normalization(relu=True, name='conv5_4_bn')
              .conv(1, 1, num_classes, 1, 1, biased=True, relu=False, name='conv6'))
 
-
-class PSPNet50(Network):
+class PSPNet50(PSPNetwork):
     def setup(self, is_training, num_classes):
         '''Network definition.
         Args:

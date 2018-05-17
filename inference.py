@@ -71,7 +71,8 @@ class SegApp(object):
 
 	def _tf_init(self):
 		self.img_tf = tf.placeholder(dtype=tf.float32, shape=self.input_feed_shape)
-		self.net = DeepLabResNetModel({'data': self.img_tf}, is_training=False, num_classes=self.num_classes)
+		self.net = self.model({'data': self.img_tf}, is_training=False, num_classes=self.num_classes)
+
 		self.config = tf.ConfigProto()
 		self.config.gpu_options.allow_growth = True
 		self.session = tf.Session(config=self.config)
@@ -101,7 +102,11 @@ class SegApp(object):
 
 	def process(self, img):
 		img_resized, img_feed = self._pre_process(img)
-		raw_output = self.net.layers['fc_out']
+		try:
+			raw_output = self.net.layers['fc_out']
+		except:
+			raw_output = self.net.layers['conv6']
+
 		raw_output_up = tf.image.resize_bilinear(raw_output, tf.shape(img_resized)[0:2, ])
 		raw_output_up = tf.argmax(raw_output_up, dimension=3)
 		pred = tf.expand_dims(raw_output_up, dim=3)

@@ -5,7 +5,7 @@ INTERESTED_CLASS = 4
 
 
 def main():
-    app = SegApp(model_name='DeepLab')
+    app = SegApp(model_name='PSPNet101')
     app.spin()
     img = cv2.imread('demo.jpg')
     res = app.process(img)
