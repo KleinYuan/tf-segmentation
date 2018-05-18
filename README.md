@@ -5,6 +5,24 @@ Real time segmentation inference production ready code based on DeepLab-ResNet, 
 
 ![Demo Segmentation](https://user-images.githubusercontent.com/8921629/40209620-39e7bbb2-59f5-11e8-94ee-2c320e3062dd.png)
 
+# Note
+
+This repo is basically a cleaned unified re-organized code from multiple open sourced [projects](https://github.com/KleinYuan/tf-segmentation#borrowed-code). I tried to implement as good practice as possible.
+ However, there are still some ugly code borrowed from the original repo requiring tons of time to refine, while I haven't got enough bandwidth yet. Ultimately, I will even rewrite all the models/network layers so that it's easier to understand, modify, deploy on all levels, with clean level similar to [this one](https://github.com/KleinYuan/cnn).
+
+Honestly, if the pre-trained model can be frozen well, we can just use similar [architecture](https://github.com/KleinYuan/tf-object-detection) for inference. However, unfortunately, my previous efforts on freeze the graph and fetch tensor running the compute does not really give reasonable predictions. I may spend more time on that issue later so that
+we can remove the ugly network constructing code.
+
+This repo is all about inference, server, api instead of training, or research.
+
+Therefore, you are expected to do following things with this repo:
+
+- [X] Real Time Segmentation with multiple models against Camera
+
+- [X] Segmentation API wrapped up with Docker container, ready to deploy
+
+- [X] Multiple open source pre-trained segmentation model performance evaluation against single image
+
 
 # Dependencies
 
@@ -51,9 +69,10 @@ Real time segmentation inference production ready code based on DeepLab-ResNet, 
 3. run below:
 
 ```
-python demo.py
+make demo
 ```
 
+Note: you can change this [line](https://github.com/KleinYuan/tf-segmentation/blob/master/demo.py#L8) to be with `DeepLab`, `PSPNet101` and `PSPNet50`.
 
 # Freeze Model [Optional]
 

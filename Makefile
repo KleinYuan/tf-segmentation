@@ -1,3 +1,6 @@
+demo:
+	python demo.py
+
 build:
 	sudo docker build -t ms-tf-seg .
 
