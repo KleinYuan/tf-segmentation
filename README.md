@@ -1,8 +1,14 @@
 # Introduction
 
-Real time segmentation inference production ready code based on DeepLab.
+Real time segmentation inference production ready code based on DeepLab-ResNet, PSP Net.
+
+
+![Demo Segmentation](https://user-images.githubusercontent.com/8921629/40209620-39e7bbb2-59f5-11e8-94ee-2c320e3062dd.png)
+
 
 # Dependencies
+
+`Actually simply using Anaconda may save you a year!`
 
 - [X] Python 2.X
 
@@ -12,6 +18,43 @@ Real time segmentation inference production ready code based on DeepLab.
 
 * No GPU required
 
+# Run Demo
+
+1. Download pre-trained model first 
+
+- [X] [DeepLab-ResNet](https://drive.google.com/drive/folders/0B9CKOTmy0DyaQ2oxUHdtYUd2Mm8?usp=sharing)
+
+- [X] [PSP Net](https://drive.google.com/drive/folders/1S90PWzXEX_GNzulG1f2eTHvsruITgqsm?usp=sharing)
+
+2. Put model.* files under `/model` folder ensuring the name is consistent with model name
+
+```
+--model
+  |-- deeplab
+      |-- checkpoint
+      |-- model.ckpt-100000.data-00000-of-00001
+      |-- model.ckpt-100000.index
+      |-- model.ckpt-100000.meta
+  |-- pspnet50
+      |-- checkpoint
+      |-- model.ckpt-0.data-00000-of-00001
+      |-- model.ckpt-0.index
+      |-- model.ckpt-0.meta
+  |-- pspnet101
+      |-- checkpoint
+      |-- model.ckpt-0.data-00000-of-00001
+      |-- model.ckpt-0.index
+      |-- model.ckpt-0.meta
+
+```
+
+3. run below:
+
+```
+python demo.py
+```
+
+
 # Freeze Model [Optional]
 
 ```
@@ -19,34 +62,21 @@ Real time segmentation inference production ready code based on DeepLab.
 bash freeze.sh
 ```
 
-# Run Demo
-
-1. Download pre-trained model first (e.g: [Indoor-segmentation](https://github.com/hellochick/Indoor-segmentation))
-
-```
-1 (wall)      <- 9(window), 15(door), 33(fence), 43(pillar), 44(sign board), 145(bullertin board)
-4 (floor)     <- 7(road), 14(ground, 30(field), 53(path), 55(runway)
-5 (tree)      <- 18(plant)
-8 (furniture) <- 8(bed), 11(cabinet), 14(sofa), 16(table), 19(curtain), 20(chair), 25(shelf), 34(desk) 
-7 (stairs)    <- 54(stairs)
-26(others)    <- class number larger than 26
-```
-
-2. Put model.* files under `/model` folder
-3. run below:
-
-```
-python demo.py
-```
-
 # References
 
-Paper: [Chen, Liang-Chieh, et al. "Deeplab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected crfs." arXiv preprint arXiv:1606.00915 (2016).](https://arxiv.org/pdf/1606.00915.pdf)
+Paper: 
+
+1. [Chen, Liang-Chieh, et al. "Deeplab: Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected crfs." arXiv preprint arXiv:1606.00915 (2016).](https://arxiv.org/pdf/1606.00915.pdf)
+
+2. [Zhao, Hengshuang, et al. "Pyramid scene parsing network." IEEE Conf. on Computer Vision and Pattern Recognition (CVPR). 2017.](https://arxiv.org/pdf/1612.01105.pdf)
 
 # Borrowed Code
 
 1. `model.py/network.py` are borrowed from [DrSleep's implementation](https://github.com/DrSleep/tensorflow-deeplab-resnet). The layout does not seem ideal to me and I may re-implement them later on, but for now, I will just stick with it.
+
 2. Pre-trained weight can be referred from [Indoor-segmentation](https://github.com/hellochick/Indoor-segmentation)
+
+3. PSP Network code borrowed but refined from [PSP-tensorflow](https://github.com/hellochick/PSPNet-tensorflow)
 
 # Docker
 
